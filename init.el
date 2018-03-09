@@ -32,12 +32,19 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#e090d7" "#8cc4ff" "#eeeeec"])
  '(column-number-mode t)
  '(company-minimum-prefix-length 1)
+ '(custom-enabled-themes (quote (manoj-dark)))
  '(ensime-default-server-root "/home/andrew/src/ensime_2.9.2-0.9.8.1/")
+ '(flycheck-checker-error-threshold 1000)
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
+ '(linum-format "%d ")
+ '(org-agenda-files (quote ("~/doc/notes.org")))
  '(proof-electric-terminator-enable t)
+ '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
@@ -55,12 +62,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
- '(flymake-errline ((((class color)) (:foreground "red" :underline "red"))))
- '(flymake-warnline ((((class color)) (:foreground "cyan" :underline "cyan"))))
+ '(flymake-errline ((t (:foreground "brightred" :underline t :weight bold))))
+ '(flymake-warnline ((t (:inherit warning :underline (:color foreground-color :style wave)))))
  '(minibuffer-prompt ((t (:foreground "Cyan"))))
  '(minimap-active-region-background ((t (:background "dark slate gray"))))
  '(proof-locked-face ((t (:background "dark slate gray"))))
- '(show-paren-match ((((class color) (background dark)) (:background "grey22")))))
+ '(show-paren-match ((t (:background "color-232")))))
 
 ;; (setq load-path (cons (expand-file-name "/usr/share/doc/git/contrib/emacs") load-path))
 ;; (require 'vc-git)
@@ -129,62 +136,13 @@
 ;; ido-mode
 ;;
 (require 'ido)
+(require 'flx-ido)
+
 (ido-mode t)
+(ido-everywhere t)
+(flx-ido-mode t)
 (setq ido-enable-flex-matching t) ;; enable fuzzy matching
-
-;;
-;;
-;; code to put flymake output in the mini-buffer
-;;
-;;
-;;
-(defun credmp/flymake-display-err-minibuf ()
-  "Displays the error/warning for the current line in the minibuffer"
-  (interactive)
-  (let* ((line-no             (flymake-current-line-no))
-         (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-         (count               (length line-err-info-list))
-         )
-    (while (> count 0)
-      (when line-err-info-list
-        (let* ((file       (flymake-ler-file (nth (1- count) line-err-info-list)))
-               (full-file  (flymake-ler-full-file (nth (1- count) line-err-info-list)))
-               (text (flymake-ler-text (nth (1- count) line-err-info-list)))
-               (line       (flymake-ler-line (nth (1- count) line-err-info-list))))
-          (message "[%s] %s" line text)
-          )
-        )
-      (setq count (1- count)))))
-
-
-;;
-;;
-;; and add a key-binding
-;;
-;;
-(add-hook
- 'haskell-mode-hook
- '(lambda ()
-    (define-key haskell-mode-map "\C-cd"
-      'credmp/flymake-display-err-minibuf)))
-
-;; (add-hook
-;;  'python-mode-hook
-;;  '(lambda ()
-;;     (define-key py-mode-map "\C-cd"
-;;      'credmp/flymake-display-err-minibuf)))
-
-(add-hook
- 'html-mode-hook
- '(lambda ()
-    (define-key html-mode-map "\C-cd"
-     'credmp/flymake-display-err-minibuf)))
-
-(add-hook
- 'perl-mode-hook
- '(lambda ()
-    (define-key perl-mode-map "\C-cd"
-      'credmp/flymake-display-err-minibuf)))
+(setq ido-use-faces nil)
 
 ;;
 ;; word counting stuff
@@ -271,9 +229,10 @@
 
 
 ;;
-;; ag
+;; helm-ag
 ;;
-(global-set-key (kbd "C-c C-g") 'ag)
+(global-set-key (kbd "C-c C-g") 'helm-do-ag)
+(global-set-key (kbd "C-c r") 'helm-resume)
 
 
 (global-linum-mode 1)
@@ -359,3 +318,99 @@ directory to make multiple eshell windows easier."
 
 (require 'py-autopep8)
 (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
+;;
+;; ruby
+;;
+(require 'smartparens-ruby)
+(require 'ruby-test-mode)
+(define-key ruby-test-mode-map (kbd "C-c t") 'ruby-test-toggle-implementation-and-specification)
+
+(add-hook 'ruby-mode-hook 'flycheck-mode)
+(add-hook 'ruby-mode-hook 'robe-mode)
+(add-hook 'ruby-mode-hook 'yas-minor-mode)
+(add-hook 'ruby-mode-hook
+          (lambda ()
+            (define-key ruby-mode-map (kbd "C-c d") 'flymake-popup-current-error-menu)
+            (define-key ruby-mode-map (kbd "C-c h") 'hs-toggle-hiding)
+            (define-key ruby-mode-map (kbd "C-c p") 'ruby-hash-syntax-toggle)))
+
+
+(add-hook 'ruby-mode-hook 'hs-minor-mode)
+(add-hook 'ruby-mode-hook 'ruby-test-mode)
+(add-hook 'ruby-mode-hook 'smartparens-mode)
+
+
+(eval-after-load "hideshow"
+  '(add-to-list 'hs-special-modes-alist
+                `(ruby-mode
+                  ,(rx (or "def" "class" "module" "do" "{" "[")) ; Block start
+                  ,(rx (or "}" "]" "end"))                       ; Block end
+                  ,(rx (or "#" "=begin"))                        ; Comment start
+                  ruby-forward-sexp nil)))
+
+;; nice control for ruby tests. puts point at the bottom of the
+;; compilation buffer with `q` as a nice quit
+(add-hook 'compilation-finish-functions
+          (lambda (buf strg)
+;;            (switch-to-buffer-other-window "*compilation*")
+            (pop-to-buffer "*compilation*")
+            (read-only-mode)
+            (goto-char (point-min))
+            (local-set-key (kbd "q")
+                           (lambda () (interactive) (quit-restore-window nil "bury")))))
+
+;;
+;; completion
+;;
+(require 'auto-complete-config)
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+(ac-config-default)
+(setq ac-ignore-case nil)
+(add-to-list 'ac-modes 'enh-ruby-mode)
+
+
+;;
+;; window management
+;;
+;; look into switch-window or ace-window as alternatives that only use
+;; a single keybinding
+;;
+(global-set-key (kbd "C-c <left>") 'windmove-left)
+(global-set-key (kbd "C-c <right>") 'windmove-right)
+(global-set-key (kbd "C-c <up>") 'windmove-up)
+(global-set-key (kbd "C-c <down>") 'windmove-down)
+
+;;
+;; magit stuff
+;;
+(global-set-key (kbd "C-c g") 'magit-status)
+
+;;
+;; js-mode
+;;
+
+(defun my-js-mode-hook ()
+  (setq js-indent-level 2))
+(add-hook 'js-mode-hook 'my-js-mode-hook)
+
+;;
+;; loccur
+;;
+(require 'loccur)
+
+(global-set-key (kbd "C-o") 'loccur-current)
+(global-set-key (kbd "C-M-o") 'loccur)
+(global-set-key (kbd "C-S-o") 'loccur-previous-match)
+
+;;
+;; web-mode
+;;
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+
+;;
+;; projectile mode
+;;
+(require 'projectile)
+(projectile-mode t)

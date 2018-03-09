@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: rspec describe
+# key: specd
+# --
+describe '$1' do
+  $0
+end
