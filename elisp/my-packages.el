@@ -18,7 +18,6 @@
     flymake-easy
     flymake-ruby
     flycheck
-    helm-ag
     idle-highlight-mode
     json-mode
     loccur

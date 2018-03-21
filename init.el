@@ -227,14 +227,6 @@
 (setq visible-bell nil)
 (setq ring-bell-function #'my-terminal-visible-bell)
 
-
-;;
-;; helm-ag
-;;
-(global-set-key (kbd "C-c C-g") 'helm-do-ag)
-(global-set-key (kbd "C-c r") 'helm-resume)
-
-
 (global-linum-mode 1)
 
 ;;
@@ -351,14 +343,16 @@ directory to make multiple eshell windows easier."
 
 ;; nice control for ruby tests. puts point at the bottom of the
 ;; compilation buffer with `q` as a nice quit
+
 (add-hook 'compilation-finish-functions
           (lambda (buf strg)
 ;;            (switch-to-buffer-other-window "*compilation*")
-            (pop-to-buffer "*compilation*")
-            (read-only-mode)
-            (goto-char (point-min))
-            (local-set-key (kbd "q")
-                           (lambda () (interactive) (quit-restore-window nil "bury")))))
+            (save-current-buffer
+              (set-buffer "*compilation*")
+              (read-only-mode)
+              (goto-char (point-min))
+              (local-set-key (kbd "q")
+                             (lambda () (interactive) (quit-restore-window nil "bury"))))))
 
 ;;
 ;; completion
