@@ -52,6 +52,7 @@
    (quote
     ("/usr/local/bin" "/bin" "/usr/bin" "/sbin" "/usr/sbin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/opt/bin" "/opt/sbin" "/opt/local/bin")))
  '(uniquify-buffer-name-style (quote reverse) nil (uniquify))
+ '(warning-suppress-types (quote ((undo discard_info))))
  '(web-mode-attr-indent-offset 2)
  '(web-mode-attr-value-indent-offset 2)
  '(web-mode-code-indent-offset 2)
@@ -408,3 +409,33 @@ directory to make multiple eshell windows easier."
 ;;
 (require 'projectile)
 (projectile-mode t)
+(put 'downcase-region 'disabled nil)
+
+;;
+;; highlight duplicate lines
+;;
+(require 'highlight)
+(defun highlight-line-dups-region (&optional start end face msgp)
+  (interactive `(,@(hlt-region-or-buffer-limits) nil t))
+  (let ((count  0)
+        line-re)
+    (save-excursion
+      (goto-char start)
+      (while (< (point) end)
+        (setq count    0
+              line-re  (concat "^" (regexp-quote (buffer-substring-no-properties
+                                                  (line-beginning-position)
+                                                  (line-end-position)))
+                               "$"))
+        (save-excursion
+          (goto-char start)
+          (while (< (point) end)
+            (if (not (re-search-forward line-re nil t))
+                (goto-char end)
+              (setq count  (1+ count))
+              (unless (< count 2)
+                (hlt-highlight-region
+                 (line-beginning-position) (line-end-position)
+                 face)
+                (forward-line 1)))))
+        (forward-line 1)))))

@@ -18,6 +18,7 @@
     flymake-easy
     flymake-ruby
     flycheck
+    highlight
     idle-highlight-mode
     json-mode
     loccur
