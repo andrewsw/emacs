@@ -52,10 +52,13 @@
    (quote
     ("/usr/local/bin" "/bin" "/usr/bin" "/sbin" "/usr/sbin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/opt/bin" "/opt/sbin" "/opt/local/bin")))
  '(uniquify-buffer-name-style (quote reverse) nil (uniquify))
- '(warning-suppress-types (quote ((undo discard_info))))
+ '(warning-suppress-types (quote ((undo discard-info))))
  '(web-mode-attr-indent-offset 2)
  '(web-mode-attr-value-indent-offset 2)
+ '(web-mode-auto-close-style 2)
  '(web-mode-code-indent-offset 2)
+ '(web-mode-enable-auto-closing t)
+ '(web-mode-enable-auto-pairing t)
  '(web-mode-markup-indent-offset 2))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -65,6 +68,10 @@
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
  '(flymake-errline ((t (:foreground "brightred" :underline t :weight bold))))
  '(flymake-warnline ((t (:inherit warning :underline (:color foreground-color :style wave)))))
+ '(magit-diff-added ((t (:background "green" :foreground "#ddffdd"))))
+ '(magit-diff-added-highlight ((t (:background "green" :foreground "brightblack"))))
+ '(magit-diff-removed ((t (:background "red" :foreground "#ffdddd"))))
+ '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))))
  '(minibuffer-prompt ((t (:foreground "Cyan"))))
  '(minimap-active-region-background ((t (:background "dark slate gray"))))
  '(proof-locked-face ((t (:background "dark slate gray"))))
@@ -131,6 +138,7 @@
 (add-hook 'org-mode-hook
           (auto-fill-mode t)
           (flyspell-mode t))
+(setq org-src-fontify-natively t)
 
 ;;
 ;;
@@ -379,7 +387,18 @@ directory to make multiple eshell windows easier."
 ;;
 ;; magit stuff
 ;;
-(global-set-key (kbd "C-c g") 'magit-status)
+(require 'seq)
+(defun my/find-magit-status-buffer()
+  (interactive)
+  (let* ((magit-buffers (seq-filter '(lambda (n) (string-match "magit: " (buffer-name n))) (buffer-list)))
+         (buffer-names (mapcar 'buffer-name magit-buffers))
+         (selected-magit-buffer (if (< 1 (seq-length buffer-names))
+                                    (ido-completing-read "Which project status? " buffer-names)
+                                  (car buffer-names))))
+    (switch-to-buffer selected-magit-buffer)
+    (set-buffer selected-magit-buffer)))
+
+(global-set-key (kbd "C-c g") 'my/find-magit-status-buffer)
 
 ;;
 ;; js-mode

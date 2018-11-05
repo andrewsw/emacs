@@ -28,6 +28,7 @@
     projectile
     py-autopep8
     robe
+    rubocop
     ruby-electric
     ruby-hash-syntax
     ruby-test-mode
