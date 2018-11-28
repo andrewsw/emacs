@@ -139,7 +139,9 @@
           (auto-fill-mode t)
           (flyspell-mode t))
 (setq org-src-fontify-natively t)
-
+(setq org-default-notes-file "~/doc/notes.org")
+(define-key global-map "\C-cc" 'org-capture)
+(define-key global-map "\C-ct" 'org-todo-list)
 ;;
 ;;
 ;; ido-mode
