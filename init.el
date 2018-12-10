@@ -22,11 +22,6 @@
 (require 'recentf)
 (recentf-mode 1)
 
-;; extra key bindings
-;(global-set-key "\M-C" 'compile)
-;(global-set-key "\C-^" 'next-error)
-;(global-set-key "\C-\M-g" 'goto-line)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -37,20 +32,15 @@
  '(column-number-mode t)
  '(company-minimum-prefix-length 1)
  '(custom-enabled-themes (quote (manoj-dark)))
- '(ensime-default-server-root "/home/andrew/src/ensime_2.9.2-0.9.8.1/")
  '(flycheck-checker-error-threshold 1000)
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
  '(org-agenda-files (quote ("~/doc/notes.org")))
- '(proof-electric-terminator-enable t)
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
- '(tramp-remote-path
-   (quote
-    ("/usr/local/bin" "/bin" "/usr/bin" "/sbin" "/usr/sbin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/opt/bin" "/opt/sbin" "/opt/local/bin")))
  '(uniquify-buffer-name-style (quote reverse) nil (uniquify))
  '(warning-suppress-types (quote ((undo discard-info))))
  '(web-mode-attr-indent-offset 2)
@@ -66,23 +56,13 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
- '(flymake-errline ((t (:foreground "brightred" :underline t :weight bold))))
- '(flymake-warnline ((t (:inherit warning :underline (:color foreground-color :style wave)))))
  '(magit-diff-added ((t (:background "green" :foreground "#ddffdd"))))
  '(magit-diff-added-highlight ((t (:background "green" :foreground "brightblack"))))
  '(magit-diff-removed ((t (:background "red" :foreground "#ffdddd"))))
  '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))))
  '(minibuffer-prompt ((t (:foreground "Cyan"))))
  '(minimap-active-region-background ((t (:background "dark slate gray"))))
- '(proof-locked-face ((t (:background "dark slate gray"))))
  '(show-paren-match ((t (:background "color-232")))))
-
-;; (setq load-path (cons (expand-file-name "/usr/share/doc/git/contrib/emacs") load-path))
-;; (require 'vc-git)
-;; (when (featurep 'vc-git) (add-to-list 'vc-handled-backends 'git))
-;; (require 'git)
-;; (autoload 'git-blame-mode "git-blame"
-;;   "Minor mode for incremental blame for Git." t)
 
 ;;
 ;;
