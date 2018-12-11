@@ -33,10 +33,11 @@
  '(company-minimum-prefix-length 1)
  '(custom-enabled-themes (quote (manoj-dark)))
  '(flycheck-checker-error-threshold 1000)
+ '(fringe-mode (quote (1 . 1)) nil (fringe))
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
- '(org-agenda-files (quote ("~/doc/notes.org")))
+ '(org-agenda-files (quote ("~/doc/kiku_day_one.org" "~/doc/notes.org")))
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
@@ -56,10 +57,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
- '(magit-diff-added ((t (:background "green" :foreground "#ddffdd"))))
- '(magit-diff-added-highlight ((t (:background "green" :foreground "brightblack"))))
- '(magit-diff-removed ((t (:background "red" :foreground "#ffdddd"))))
- '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))))
+ '(magit-diff-added ((t (:background "forest green" :foreground "#ddffdd"))))
+ '(magit-diff-added-highlight ((t (:background "forest green" :foreground "brightblack"))))
+ '(magit-diff-removed ((t (:background "darkred" :foreground "#ffdddd"))))
+ '(magit-diff-removed-highlight ((t (:background "dark red" :foreground "white"))))
  '(minibuffer-prompt ((t (:foreground "Cyan"))))
  '(minimap-active-region-background ((t (:background "dark slate gray"))))
  '(show-paren-match ((t (:background "color-232")))))
@@ -194,10 +195,6 @@
   "handy little tool."
   (buffer-substring (point-at-bol) (point-at-eol)))
 
-
-(set-frame-parameter (selected-frame) 'alpha '(100 70))
-(add-to-list 'default-frame-alist '(alpha 100 70))
-
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
 
@@ -305,7 +302,7 @@ directory to make multiple eshell windows easier."
 ;;
 ;; ruby
 ;;
-(require 'smartparens-ruby)
+;; (require 'smartparens-ruby) ;; where did this package come from?
 (require 'ruby-test-mode)
 (define-key ruby-test-mode-map (kbd "C-c t") 'ruby-test-toggle-implementation-and-specification)
 

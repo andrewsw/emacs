@@ -32,6 +32,7 @@
     ruby-electric
     ruby-hash-syntax
     ruby-test-mode
+    web-mode
     yaml-mode
     yasnippet))
 
