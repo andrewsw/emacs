@@ -302,7 +302,6 @@ directory to make multiple eshell windows easier."
 ;;
 ;; ruby
 ;;
-;; (require 'smartparens-ruby) ;; where did this package come from?
 (require 'ruby-test-mode)
 (define-key ruby-test-mode-map (kbd "C-c t") 'ruby-test-toggle-implementation-and-specification)
 
