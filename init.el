@@ -33,8 +33,11 @@
  '(company-minimum-prefix-length 1)
  '(custom-enabled-themes (quote (manoj-dark)))
  '(flycheck-checker-error-threshold 1000)
+ '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
+ '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
  '(fringe-mode (quote (1 . 1)) nil (fringe))
  '(indent-tabs-mode nil)
+ '(jdee-server-dir "~/.emacs.d/lib/jdee-server")
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
  '(org-agenda-files (quote ("~/doc/kiku_day_one.org" "~/doc/notes.org")))
@@ -42,6 +45,7 @@
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
+ '(tramp-terminal-type "tramp")
  '(uniquify-buffer-name-style (quote reverse) nil (uniquify))
  '(warning-suppress-types (quote ((undo discard-info))))
  '(web-mode-attr-indent-offset 2)
@@ -308,6 +312,7 @@ directory to make multiple eshell windows easier."
 (add-hook 'ruby-mode-hook 'flycheck-mode)
 (add-hook 'ruby-mode-hook 'robe-mode)
 (add-hook 'ruby-mode-hook 'yas-minor-mode)
+
 (add-hook 'ruby-mode-hook
           (lambda ()
             (define-key ruby-mode-map (kbd "C-c d") 'flymake-popup-current-error-menu)
@@ -317,7 +322,8 @@ directory to make multiple eshell windows easier."
 
 (add-hook 'ruby-mode-hook 'hs-minor-mode)
 (add-hook 'ruby-mode-hook 'ruby-test-mode)
-(add-hook 'ruby-mode-hook 'smartparens-mode)
+;; I don't know why this is here, but it doesn't work...
+;;(add-hook 'ruby-mode-hook 'smartparens-mode)
 
 
 (eval-after-load "hideshow"
@@ -382,9 +388,9 @@ directory to make multiple eshell windows easier."
 ;; js-mode
 ;;
 
-(defun my-js-mode-hook ()
-  (setq js-indent-level 2))
-(add-hook 'js-mode-hook 'my-js-mode-hook)
+;; (defun my-js-mode-hook ()
+;;   (setq js-indent-level 2))
+;; (add-hook 'js-mode-hook 'my-js-mode-hook)
 
 ;;
 ;; loccur
@@ -405,7 +411,8 @@ directory to make multiple eshell windows easier."
 ;; projectile mode
 ;;
 (require 'projectile)
-(projectile-mode t)
+(projectile-global-mode t)
+
 (put 'downcase-region 'disabled nil)
 
 ;;
