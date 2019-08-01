@@ -32,15 +32,20 @@
  '(column-number-mode t)
  '(company-minimum-prefix-length 1)
  '(custom-enabled-themes (quote (manoj-dark)))
+ '(exec-path
+   (quote
+    ("/home/local/ANT/asackvil/.cargo/bin" "/home/local/ANT/asackvil/bin" "/home/local/ANT/asackvil/.local/bin" "/usr/local/sbin" "/usr/local/bin" "/usr/sbin" "/usr/bin" "/sbin" "/bin" "/usr/games" "/usr/local/games" "/snap/bin" "/home/local/ANT/asackvil/.gem/ruby/2.3.0/bin" "/usr/lib/x86_64-linux-gnu/emacs/26.2/x86_64-linux-gnu")))
  '(flycheck-checker-error-threshold 1000)
  '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
  '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
  '(fringe-mode (quote (1 . 1)) nil (fringe))
  '(indent-tabs-mode nil)
- '(jdee-server-dir "~/.emacs.d/lib/jdee-server")
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
- '(org-agenda-files (quote ("~/doc/kiku_day_one.org" "~/doc/notes.org")))
+ '(org-agenda-files (quote ("~/doc/notes.org")))
+ '(package-selected-packages
+   (quote
+    (mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode auto-complete ag)))
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
@@ -121,12 +126,22 @@
 
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 (add-hook 'org-mode-hook
-          (auto-fill-mode t)
-          (flyspell-mode t))
+          '(lambda ()
+             (auto-fill-mode t)
+             (flyspell-mode t)))
 (setq org-src-fontify-natively t)
 (setq org-default-notes-file "~/doc/notes.org")
 (define-key global-map "\C-cc" 'org-capture)
 (define-key global-map "\C-ct" 'org-todo-list)
+
+(setq org-capture-templates
+      '(("t" "Task" entry (file+headline "" "Tasks")
+         "* TODO %?\n  %u\n  %a")
+        ("j" "Journal" entry (file+olp+datetree "~/doc/journal.org")
+         "**** %<%H:%M> %^{header}\n %?\n%a\n"
+         :tree-type week
+         :empty-lines 1)))
+
 ;;
 ;;
 ;; ido-mode
@@ -219,7 +234,7 @@
 (setq visible-bell nil)
 (setq ring-bell-function #'my-terminal-visible-bell)
 
-(global-linum-mode 1)
+(global-display-line-numbers-mode t)
 
 ;;
 ;; prog mode
@@ -294,7 +309,7 @@ directory to make multiple eshell windows easier."
 ;;
 ;; python
 ;;
-(elpy-enable)
+(elpy-enable) ; commented as it throws errors on emacs26. might need to reinstall elpy
 
 (when (require 'flycheck nil t)
   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
@@ -412,6 +427,7 @@ directory to make multiple eshell windows easier."
 ;;
 (require 'projectile)
 (projectile-global-mode t)
+(global-set-key (kbd "C-c p") 'projectile-command-map)
 
 (put 'downcase-region 'disabled nil)
 
@@ -443,3 +459,39 @@ directory to make multiple eshell windows easier."
                  face)
                 (forward-line 1)))))
         (forward-line 1)))))
+
+;;
+;; java lsp
+;;
+(require 'lsp-java)
+(add-hook 'java-mode-hook #'lsp)
+
+;;
+;; pretty colors in compilation buffers
+;;
+(require 'ansi-color)
+(defun asackvil/colorize-compilation ()
+  "Colorize from `compilation-filter-start' to `point'."
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region
+     compilation-filter-start (point))))
+
+(add-hook 'compilation-filter-hook
+          #'asackvil/colorize-compilation)
+
+
+;;
+;; org-issues-mode
+;;
+;; SIM integration, aw yeah
+;;
+
+(add-to-list 'load-path "~/src/Emacs-org-issues-mode/src")
+
+(require 'org-issues-mode)
+(org-issues-update/monitor-issues)
+
+
+;;
+;; enable mu4e
+(require 'my-mu4e)
