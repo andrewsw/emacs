@@ -66,6 +66,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
+ '(erc-default-face ((t (:foreground "dark gray"))))
+ '(erc-input-face ((t (:foreground "white"))))
  '(magit-diff-added ((t (:background "forest green" :foreground "#ddffdd"))))
  '(magit-diff-added-highlight ((t (:background "forest green" :foreground "brightblack"))))
  '(magit-diff-removed ((t (:background "darkred" :foreground "#ffdddd"))))
@@ -495,3 +497,12 @@ directory to make multiple eshell windows easier."
 ;;
 ;; enable mu4e
 (require 'my-mu4e)
+
+;;
+;; with mu4e enabled, bring in org-mode support
+;;
+(require 'org-mu4e)
+
+;; allow capturing directly in mu4e buffers
+(define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
+(define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)

@@ -21,7 +21,8 @@
       mu4e-update-interval 300
       message-kill-buffer-on-exit t)
 
-(setq mu4e-html2text-command "w3m -T text/html")
+(require 'mu4e-contrib)
+(setq mu4e-html2text-command 'mu4e-shr2text)
 
 ;; you can quickly switch to your Inbox -- press ja
 (setq mu4e-maildir-shortcuts
