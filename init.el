@@ -5,6 +5,10 @@
 
 (require 'my-packages)
 
+;;
+;; setup PATH to include my local bin
+;;
+(setenv "PATH" (concat "~/bin:" (getenv "PATH")))
 
 ;;
 ;;
