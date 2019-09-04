@@ -26,6 +26,10 @@
 (show-paren-mode t)
 (setq show-paren-style 'expression)
 
+;; display time and date in modeline
+(setq display-time-day-and-date 't)
+(display-time)
+
 ;; subword mode rocks with camelCase and doesn't seem to get in the way otherwise...
 (global-subword-mode t)
 
