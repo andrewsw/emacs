@@ -46,7 +46,7 @@
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
- '(org-agenda-files (quote ("~/doc/notes.org")))
+ '(org-agenda-files (quote ("~/doc/notes.org" "~/doc/journal.org")))
  '(package-selected-packages
    (quote
     (mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode auto-complete ag)))
