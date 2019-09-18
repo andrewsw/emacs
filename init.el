@@ -6,11 +6,6 @@
 (require 'my-packages)
 
 ;;
-;; setup PATH to include my local bin
-;;
-(setenv "PATH" (concat "~/bin:" (getenv "PATH")))
-
-;;
 ;;
 ;; various configuration and setup routines ()
 ;;
@@ -47,9 +42,16 @@
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
  '(org-agenda-files (quote ("~/doc/notes.org" "~/doc/journal.org")))
+ '(org-agenda-todo-ignore-scheduled (quote future))
+ '(org-deadline-warning-days 5)
  '(package-selected-packages
    (quote
-    (mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode auto-complete ag)))
+    (project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode auto-complete ag)))
+ '(projectile-globally-ignored-directories
+   (quote
+    (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
+ '(projectile-globally-ignored-file-suffixes (quote ("class")))
+ '(py-autopep8-options (quote ("--max-line-length=120")))
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
@@ -279,8 +281,9 @@ directory to make multiple eshell windows easier."
 (global-set-key (kbd "C-!") 'eshell-here)
 
 (defun eshell/x ()
-  (insert "exit")
-  (eshell-send-input)
+
+  (insert (concat "exit"))
+  (eshell-send-input nil 1 nil)
   (delete-window))
 
 ;;
@@ -470,7 +473,22 @@ directory to make multiple eshell windows easier."
 ;; java lsp
 ;;
 (require 'lsp-java)
+(require 'dap-java)
+
+
+(defun asackvil/dap-java-run-test-class ()
+  (interactive)
+  (save-buffer)
+  (dap-java-run-test-class))
+
+(defun asackvil/setup-dap-mode ()
+  "Setup dap-mode bits for java"
+  (dap-mode 1)
+  (define-key dap-mode-map (kbd "C-c C-t") #'asackvil/dap-java-run-test-class))
 (add-hook 'java-mode-hook #'lsp)
+(add-hook 'java-mode-hook #'asackvil/setup-dap-mode)
+
+
 
 ;;
 ;; pretty colors in compilation buffers
