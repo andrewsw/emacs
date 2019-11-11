@@ -7,3 +7,5 @@ eshell/
 /projectile.cache
 /recentf
 /tramp
+/.dap-breakpoints
+/.lsp-session-v1

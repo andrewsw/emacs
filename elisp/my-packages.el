@@ -11,7 +11,6 @@
 ;; something about these next three sexps isn't working properly...
 (defvar my-packages
   '(ag
-    auto-complete
     elpy
     flx-ido
     flymake-json

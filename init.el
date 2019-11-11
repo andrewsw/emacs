@@ -29,7 +29,13 @@
  '(ansi-color-names-vector
    ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#e090d7" "#8cc4ff" "#eeeeec"])
  '(column-number-mode t)
- '(company-minimum-prefix-length 1)
+ '(company-backends
+   (quote
+    (company-lsp company-bbdb company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
+                 (company-dabbrev-code company-gtags company-etags company-keywords)
+                 company-oddmuse company-dabbrev)))
+ '(company-idle-delay 0.3)
+ '(company-minimum-prefix-length 2)
  '(custom-enabled-themes (quote (manoj-dark)))
  '(exec-path
    (quote
@@ -38,15 +44,20 @@
  '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
  '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
  '(fringe-mode (quote (1 . 1)) nil (fringe))
+ '(global-company-mode t)
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
+ '(lsp-enable-indentation nil)
+ '(lsp-enable-on-type-formatting nil)
+ '(lsp-java-completion-import-order
+   ["" "java" "javax" "org.junit" "com" "org" "com.amazon" "com.amazonaws"])
  '(org-agenda-files (quote ("~/doc/notes.org" "~/doc/journal.org")))
  '(org-agenda-todo-ignore-scheduled (quote future))
  '(org-deadline-warning-days 5)
  '(package-selected-packages
    (quote
-    (project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode auto-complete ag)))
+    (lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-globally-ignored-directories
    (quote
     (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
@@ -55,6 +66,7 @@
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
+ '(show-paren-style (quote expression))
  '(tool-bar-mode nil)
  '(tramp-terminal-type "tramp")
  '(uniquify-buffer-name-style (quote reverse) nil (uniquify))
@@ -80,7 +92,7 @@
  '(magit-diff-removed-highlight ((t (:background "dark red" :foreground "white"))))
  '(minibuffer-prompt ((t (:foreground "Cyan"))))
  '(minimap-active-region-background ((t (:background "dark slate gray"))))
- '(show-paren-match ((t (:background "color-232")))))
+ '(show-paren-match ((t (:background "gray18")))))
 
 ;;
 ;;
@@ -88,13 +100,17 @@
 ;; Programming hooks
 ;;
 ;;
+(defun asackvil/setup-prog-mode ()
+  (font-lock-add-keywords nil '(("\\<\\(FIXME\\|TODO\\|BUG\\)" 1 font-lock-warning-face t)))
+  (hs-minor-mode 1)
+  (idle-highlight-mode 1)
+  (electric-pair-mode)
+  (setq c-electric-flag nil) ;; this thing is breaking indentation in java.. need to properly diagnose, this is a stop-gap
+  (define-key prog-mode-map (kbd "C-c h") 'hs-toggle-hiding)
+  (define-key prog-mode-map (kbd "C-c C-h") 'hs-hide-level))
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
-(add-hook 'prog-mode-hook
-          (lambda ()
-            (font-lock-add-keywords nil
-                                    '(("\\<\\(FIXME\\|TODO\\|BUG\\)" 1 font-lock-warning-face t)))))
-
+(add-hook 'prog-mode-hook 'asackvil/setup-prog-mode)
 ;;
 ;; Lisp, SLIME
 ;;
@@ -141,6 +157,7 @@
 (setq org-default-notes-file "~/doc/notes.org")
 (define-key global-map "\C-cc" 'org-capture)
 (define-key global-map "\C-ct" 'org-todo-list)
+(define-key global-map "\C-ca" 'org-agenda)
 
 (setq org-capture-templates
       '(("t" "Task" entry (file+headline "" "Tasks")
@@ -154,14 +171,14 @@
 ;;
 ;; ido-mode
 ;;
-(require 'ido)
-(require 'flx-ido)
+;; (require 'ido)
+;; (require 'flx-ido)
 
-(ido-mode t)
-(ido-everywhere t)
-(flx-ido-mode t)
-(setq ido-enable-flex-matching t) ;; enable fuzzy matching
-(setq ido-use-faces nil)
+;; (ido-mode t)
+;; (ido-everywhere t)
+;; (flx-ido-mode t)
+;; (setq ido-enable-flex-matching t) ;; enable fuzzy matching
+;; (setq ido-use-faces nil)
 
 ;;
 ;; word counting stuff
@@ -243,11 +260,6 @@
 (setq ring-bell-function #'my-terminal-visible-bell)
 
 (global-display-line-numbers-mode t)
-
-;;
-;; prog mode
-;;
-(add-hook 'prog-mode-hook 'idle-highlight-mode)
 
 ;;
 ;; eshell
@@ -335,7 +347,7 @@ directory to make multiple eshell windows easier."
 
 (add-hook 'ruby-mode-hook 'flycheck-mode)
 (add-hook 'ruby-mode-hook 'robe-mode)
-(add-hook 'ruby-mode-hook 'yas-minor-mode)
+
 
 (add-hook 'ruby-mode-hook
           (lambda ()
@@ -358,28 +370,6 @@ directory to make multiple eshell windows easier."
                   ,(rx (or "#" "=begin"))                        ; Comment start
                   ruby-forward-sexp nil)))
 
-;; nice control for ruby tests. puts point at the bottom of the
-;; compilation buffer with `q` as a nice quit
-
-(add-hook 'compilation-finish-functions
-          (lambda (buf strg)
-;;            (switch-to-buffer-other-window "*compilation*")
-            (save-current-buffer
-              (set-buffer "*compilation*")
-              (read-only-mode)
-              (goto-char (point-min))
-              (local-set-key (kbd "q")
-                             (lambda () (interactive) (quit-restore-window nil "bury"))))))
-
-;;
-;; completion
-;;
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-(ac-config-default)
-(setq ac-ignore-case nil)
-(add-to-list 'ac-modes 'enh-ruby-mode)
-
 
 ;;
 ;; window management
@@ -398,13 +388,16 @@ directory to make multiple eshell windows easier."
 (require 'seq)
 (defun my/find-magit-status-buffer()
   (interactive)
-  (let* ((magit-buffers (seq-filter '(lambda (n) (string-match "magit: " (buffer-name n))) (buffer-list)))
-         (buffer-names (mapcar 'buffer-name magit-buffers))
-         (selected-magit-buffer (if (< 1 (seq-length buffer-names))
-                                    (ido-completing-read "Which project status? " buffer-names)
-                                  (car buffer-names))))
-    (switch-to-buffer selected-magit-buffer)
-    (set-buffer selected-magit-buffer)))
+  (if (projectile-project-p)
+      (projectile-vc)
+    (let* ((magit-buffers (seq-filter '(lambda (n) (string-match "magit: " (buffer-name n))) (buffer-list)))
+           (buffer-names (mapcar 'buffer-name magit-buffers))
+           (selected-magit-buffer (if (and buffer-names (< 1 (seq-length buffer-names)))
+                                      (completing-read "Which project status? " buffer-names)
+                                    (car buffer-names))))
+      (if selected-magit-buffer
+          (switch-to-buffer selected-magit-buffer)
+        (magit-status)))))
 
 (global-set-key (kbd "C-c g") 'my/find-magit-status-buffer)
 
@@ -431,6 +424,7 @@ directory to make multiple eshell windows easier."
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
 
+
 ;;
 ;; projectile mode
 ;;
@@ -438,7 +432,14 @@ directory to make multiple eshell windows easier."
 (projectile-global-mode t)
 (global-set-key (kbd "C-c p") 'projectile-command-map)
 
+(projectile-register-project-type 'brazil '("build.xml")
+                                  :compile "brazil-build"
+                                  :test "brazil-build test"
+                                  :run "brazil-build server"
+                                  :test-suffix "Test")
+
 (put 'downcase-region 'disabled nil)
+
 
 ;;
 ;; highlight duplicate lines
@@ -475,18 +476,48 @@ directory to make multiple eshell windows easier."
 (require 'lsp-java)
 (require 'dap-java)
 
-
+;;
+;; if in a projectile project, save impl and test files related to this file, run dap-java-run-test-class,
+;; else just run dap-java-run-test-class
 (defun asackvil/dap-java-run-test-class ()
   (interactive)
-  (save-buffer)
-  (dap-java-run-test-class))
+  (save-current-buffer
+    (save-excursion
+      (if (projectile-project-p)
+          (let ((impl-buffer (if (projectile-test-file-p (buffer-file-name))
+                                 (find-file-noselect (projectile-find-implementation-or-test (buffer-file-name)))
+                               (current-buffer)))
+                (test-buffer (if (projectile-test-file-p (buffer-file-name))
+                                 (current-buffer)
+                               (find-file-noselect (projectile-find-implementation-or-test (buffer-file-name))))))
+            (if (buffer-modified-p impl-buffer)
+                (save-buffer impl-buffer))
+            (if (buffer-modified-p test-buffer)
+                (save-buffer test-buffer))
+            (if (get-buffer-window test-buffer)
+                (with-current-buffer test-buffer (sleep-for 1) (dap-java-run-test-class))
+              (progn
+                (pop-to-buffer test-buffer)
+                (sleep-for 1)
+                (dap-java-run-test-class))))
+        (dap-java-run-test-class)))))
 
 (defun asackvil/setup-dap-mode ()
   "Setup dap-mode bits for java"
   (dap-mode 1)
   (define-key dap-mode-map (kbd "C-c C-t") #'asackvil/dap-java-run-test-class))
-(add-hook 'java-mode-hook #'lsp)
+
+(defun asackvil/setup-lsp-mode ()
+  "Setup lsp bits"
+  (lsp)
+  (define-key lsp-mode-map (kbd "M-RET") 'lsp-execute-code-action)
+  (define-key lsp-mode-map (kbd "C-c f i") 'lsp-goto-implementation)
+  (define-key lsp-mode-map (kbd "C-c f r") 'lsp-find-references)
+  (define-key lsp-mode-map (kbd "C-c r r") 'lsp-rename))
+
+(add-hook 'java-mode-hook #'asackvil/setup-lsp-mode)
 (add-hook 'java-mode-hook #'asackvil/setup-dap-mode)
+
 
 
 
@@ -503,6 +534,16 @@ directory to make multiple eshell windows easier."
 (add-hook 'compilation-filter-hook
           #'asackvil/colorize-compilation)
 
+(defun asackvil/compilation-finish-function (buf strg)
+  (save-current-buffer
+    (set-buffer "*compilation*")
+    (read-only-mode)
+    (goto-char (point-min))
+    (local-set-key (kbd "q")
+                   (lambda () (interactive) (quit-restore-window nil "bury")))))
+
+(add-hook 'compilation-finish-functions
+          #'asackvil/compilation-finish-function)
 
 ;;
 ;; org-issues-mode
@@ -528,3 +569,39 @@ directory to make multiple eshell windows easier."
 ;; allow capturing directly in mu4e buffers
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
 (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
+
+;;
+;; snippets!
+;;
+(require 'yasnippet)
+(yas-global-mode 1)
+
+;; Amazon custom libraries
+;;
+;; this mostly seems broken for local development...
+;;(require 'amz-common)
+
+
+;;
+;; helm
+;;
+;; trying this thing out...
+(require 'helm-config)
+(setq helm-split-window-inside-p t)
+(helm-mode 1)
+
+;;
+;; company
+;;
+;;
+(setq company-dabbrev-downcase nil)
+
+(eval-after-load "cc-mode"
+  '(define-key c-mode-base-map ";" nil))
+
+;;
+;; eda-mode
+;;
+(add-to-list 'load-path "~/src/eda-mode/src/Emacs-eda-mode/src")
+(require 'eda)
+(define-key global-map (kbd "C-c e") 'eda-status)
