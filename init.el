@@ -37,13 +37,18 @@
  '(company-idle-delay 0.3)
  '(company-minimum-prefix-length 2)
  '(custom-enabled-themes (quote (manoj-dark)))
+ '(elpy-project-root-finder-functions
+   (quote
+    (elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root)))
+ '(elpy-rpc-python-command "python3")
+ '(elpy-test-runner (quote elpy-test-pytest-runner))
  '(exec-path
    (quote
     ("/home/local/ANT/asackvil/.cargo/bin" "/home/local/ANT/asackvil/bin" "/home/local/ANT/asackvil/.local/bin" "/usr/local/sbin" "/usr/local/bin" "/usr/sbin" "/usr/bin" "/sbin" "/bin" "/usr/games" "/usr/local/games" "/snap/bin" "/home/local/ANT/asackvil/.gem/ruby/2.3.0/bin" "/usr/lib/x86_64-linux-gnu/emacs/26.2/x86_64-linux-gnu")))
  '(flycheck-checker-error-threshold 1000)
  '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
  '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
- '(fringe-mode (quote (1 . 1)) nil (fringe))
+ '(fringe-mode nil nil (fringe))
  '(global-company-mode t)
  '(indent-tabs-mode nil)
  '(latex-run-command "pdflatex")
@@ -57,7 +62,8 @@
  '(org-deadline-warning-days 5)
  '(package-selected-packages
    (quote
-    (lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+ '(projectile-completion-system (quote helm))
  '(projectile-globally-ignored-directories
    (quote
     (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
@@ -84,6 +90,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
+ '(dap-ui-pending-breakpoint-face ((t (:foreground "red"))))
  '(erc-default-face ((t (:foreground "dark gray"))))
  '(erc-input-face ((t (:foreground "white"))))
  '(magit-diff-added ((t (:background "forest green" :foreground "#ddffdd"))))
@@ -332,9 +339,9 @@ directory to make multiple eshell windows easier."
 ;;
 (elpy-enable) ; commented as it throws errors on emacs26. might need to reinstall elpy
 
-(when (require 'flycheck nil t)
-  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
+;; (when (require 'flycheck nil t)
+;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;   (add-hook 'elpy-mode-hook 'flycheck-mode))
 
 (require 'py-autopep8)
 (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
@@ -352,8 +359,7 @@ directory to make multiple eshell windows easier."
 (add-hook 'ruby-mode-hook
           (lambda ()
             (define-key ruby-mode-map (kbd "C-c d") 'flymake-popup-current-error-menu)
-            (define-key ruby-mode-map (kbd "C-c h") 'hs-toggle-hiding)
-            (define-key ruby-mode-map (kbd "C-c p") 'ruby-hash-syntax-toggle)))
+            (define-key ruby-mode-map (kbd "C-c h") 'hs-toggle-hiding)))
 
 
 (add-hook 'ruby-mode-hook 'hs-minor-mode)
@@ -436,7 +442,9 @@ directory to make multiple eshell windows easier."
                                   :compile "brazil-build"
                                   :test "brazil-build test"
                                   :run "brazil-build server"
-                                  :test-suffix "Test")
+                                  :test-suffix "Test"
+                                  :test-dir "tst"
+                                  :src-dir "src")
 
 (put 'downcase-region 'disabled nil)
 
@@ -505,7 +513,7 @@ directory to make multiple eshell windows easier."
 (defun asackvil/setup-dap-mode ()
   "Setup dap-mode bits for java"
   (dap-mode 1)
-  (define-key dap-mode-map (kbd "C-c C-t") #'asackvil/dap-java-run-test-class))
+  (define-key java-mode-map (kbd "C-c C-t") #'asackvil/dap-java-run-test-class))
 
 (defun asackvil/setup-lsp-mode ()
   "Setup lsp bits"
