@@ -1,5 +1,5 @@
 ;; make sure mu4e is in your load-path
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+(add-to-list 'load-path "/usr/local/Cellar/mu/1.2.0_1/share/emacs/site-lisp/mu/mu4e")
 (require 'mu4e)
 (require 'smtpmail)
 

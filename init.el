@@ -89,7 +89,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 96 :width normal :foundry "PfEd" :family "Inconsolata"))))
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 145 :width normal :foundry "PfEd" :family "Inconsolata"))))
  '(dap-ui-pending-breakpoint-face ((t (:foreground "red"))))
  '(erc-default-face ((t (:foreground "dark gray"))))
  '(erc-input-face ((t (:foreground "white"))))
@@ -554,18 +554,6 @@ directory to make multiple eshell windows easier."
           #'asackvil/compilation-finish-function)
 
 ;;
-;; org-issues-mode
-;;
-;; SIM integration, aw yeah
-;;
-
-(add-to-list 'load-path "~/src/Emacs-org-issues-mode/src")
-
-(require 'org-issues-mode)
-(org-issues-update/monitor-issues)
-
-
-;;
 ;; enable mu4e
 (require 'my-mu4e)
 
@@ -606,10 +594,3 @@ directory to make multiple eshell windows easier."
 
 (eval-after-load "cc-mode"
   '(define-key c-mode-base-map ";" nil))
-
-;;
-;; eda-mode
-;;
-(add-to-list 'load-path "~/src/eda-mode/src/Emacs-eda-mode/src")
-(require 'eda)
-(define-key global-map (kbd "C-c e") 'eda-status)
