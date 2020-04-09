@@ -9,3 +9,10 @@ eshell/
 /tramp
 /.dap-breakpoints
 /.lsp-session-v1
+/.cache/
+/bookmarks
+/eclipse.jdt.ls/
+/elpy/
+/network-security.data
+/transient/
+/workspace/
