@@ -1,9 +1,18 @@
-;
+;;
 ;; Setup the load path to include our local stuff
 ;;
 (add-to-list 'load-path "~/.emacs.d/elisp/")
 
 (require 'my-packages)
+
+;;
+;; initialize our path...
+;;
+(setq exec-path-from-shell-variables
+      '("PATH"
+        "MANPATH"))
+(exec-path-from-shell-initialize)
+
 
 ;;
 ;;
@@ -41,10 +50,8 @@
    (quote
     (elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root)))
  '(elpy-rpc-python-command "python3")
+ '(elpy-test-pytest-runner-command (quote ("py.test" "--no-cov")))
  '(elpy-test-runner (quote elpy-test-pytest-runner))
- '(exec-path
-   (quote
-    ("/home/local/ANT/asackvil/.cargo/bin" "/home/local/ANT/asackvil/bin" "/home/local/ANT/asackvil/.local/bin" "/usr/local/sbin" "/usr/local/bin" "/usr/sbin" "/usr/bin" "/sbin" "/bin" "/usr/games" "/usr/local/games" "/snap/bin" "/home/local/ANT/asackvil/.gem/ruby/2.3.0/bin" "/usr/lib/x86_64-linux-gnu/emacs/26.2/x86_64-linux-gnu")))
  '(flycheck-checker-error-threshold 1000)
  '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
  '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
@@ -69,8 +76,10 @@
     (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
  '(projectile-globally-ignored-file-suffixes (quote ("class")))
  '(py-autopep8-options (quote ("--max-line-length=120")))
+ '(pyvenv-default-virtual-env-name "/Users/andrew/.virtualenvs/")
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
  '(scroll-bar-mode nil)
+ '(shell-file-name "/bin/bash")
  '(show-paren-mode t)
  '(show-paren-style (quote expression))
  '(tool-bar-mode nil)
@@ -89,7 +98,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 145 :width normal :foundry "PfEd" :family "Inconsolata"))))
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "light grey" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "PfEd" :family "Inconsolata"))))
  '(dap-ui-pending-breakpoint-face ((t (:foreground "red"))))
  '(erc-default-face ((t (:foreground "dark gray"))))
  '(erc-input-face ((t (:foreground "white"))))
