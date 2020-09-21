@@ -1,5 +1,5 @@
 ;; make sure mu4e is in your load-path
-(add-to-list 'load-path "/usr/local/Cellar/mu/1.2.0_1/share/emacs/site-lisp/mu/mu4e")
+(add-to-list 'load-path "/usr/local/Cellar/mu/1.4.12/share/emacs/site-lisp/mu/mu4e")
 (require 'mu4e)
 (require 'smtpmail)
 
@@ -42,7 +42,7 @@
 ;; 	       ?r))
 
 (setq mu4e-headers-fields '((:human-date . 12) (:flags . 6) (:mailing-list . 10) (:from-or-to . 22) (:thread-subject . nil)))
-(setq mu4e-headers-include-related t) ;; shows related messages in a search result -- allows seeing sent messages in thread views :)
+(setq mu4e-headers-include-related '()) ;; disabled! shows related messages in a search result -- allows seeing sent messages in thread views :)
 (setq mu4e-headers-skip-duplicates t) ;; does what it says on the tin
 (setq mu4e-view-show-images t)
 
@@ -53,6 +53,12 @@
 ;; let's help our spelling!
 (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
 
-(global-set-key (kbd "C-c m") 'mu4e)
+(defun asw/launch-mu4e ()
+  (interactive)
+  "ensures any active python environment is deactivated before starting mu4e"
+  (pyvenv-deactivate)
+  (mu4e))
+
+(global-set-key (kbd "C-c m") 'asw/launch-mu4e)
 
 (provide 'my-mu4e)

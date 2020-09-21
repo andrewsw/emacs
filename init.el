@@ -43,13 +43,15 @@
     (company-lsp company-bbdb company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
                  (company-dabbrev-code company-gtags company-etags company-keywords)
                  company-oddmuse company-dabbrev)))
- '(company-idle-delay 0.3)
- '(company-minimum-prefix-length 2)
+ '(company-idle-delay 0.5)
+ '(company-minimum-prefix-length 0)
  '(custom-enabled-themes (quote (manoj-dark)))
+ '(eldoc-print-after-edit t)
  '(elpy-project-root-finder-functions
    (quote
     (elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root)))
  '(elpy-rpc-python-command "python3")
+ '(elpy-syntax-check-command "flake8")
  '(elpy-test-pytest-runner-command (quote ("py.test" "--no-cov")))
  '(elpy-test-runner (quote elpy-test-pytest-runner))
  '(flycheck-checker-error-threshold 1000)
@@ -65,19 +67,23 @@
  '(lsp-java-completion-import-order
    ["" "java" "javax" "org.junit" "com" "org" "com.amazon" "com.amazonaws"])
  '(org-agenda-files (quote ("~/doc/notes.org" "~/doc/journal.org")))
+ '(org-agenda-restore-windows-after-quit t)
  '(org-agenda-todo-ignore-scheduled (quote future))
+ '(org-agenda-window-setup (quote current-window))
  '(org-deadline-warning-days 5)
  '(package-selected-packages
    (quote
-    (helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-completion-system (quote helm))
  '(projectile-globally-ignored-directories
    (quote
     (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
  '(projectile-globally-ignored-file-suffixes (quote ("class")))
  '(py-autopep8-options (quote ("--max-line-length=120")))
+ '(python-flymake-command (quote ("flake8")))
  '(pyvenv-default-virtual-env-name "/Users/andrew/.virtualenvs/")
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
+ '(safe-local-variable-values (quote ((pyvenv-workon . corpus))))
  '(scroll-bar-mode nil)
  '(shell-file-name "/bin/bash")
  '(show-paren-mode t)
@@ -181,7 +187,10 @@
         ("j" "Journal" entry (file+olp+datetree "~/doc/journal.org")
          "**** %<%H:%M> %^{header}\n %?\n%a\n"
          :tree-type week
-         :empty-lines 1)))
+         :empty-lines 1)
+        ("n" "Note" entry (file+headline "" "Notes to Refile")
+         "* %<%F %R> %^g\n %a\n %?\n" :empty-lines 1)
+        ))
 
 ;;
 ;;
@@ -343,17 +352,69 @@ directory to make multiple eshell windows easier."
 ;; highlighting columns
 ;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; python
 ;;
-(elpy-enable) ; commented as it throws errors on emacs26. might need to reinstall elpy
 
-;; (when (require 'flycheck nil t)
-;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;;   (add-hook 'elpy-mode-hook 'flycheck-mode))
 
-(require 'py-autopep8)
-(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+(elpy-enable)
+
+(when (require 'flycheck nil t)
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
+
+
+(add-hook 'elpy-mode-hook (lambda ()
+                           (add-hook 'before-save-hook
+                                     'elpy-black-fix-code nil t)))
+
+(require 'auto-virtualenv)
+(add-hook 'elpy-mode-hook 'auto-virtualenv-set-virtualenv)
+
+;; custom test runner for make based projects
+(defun asw/elpy-test-make-test-runner (top file module test)
+  (interactive (elpy-test-at-point))
+  (let ((working-directory (projectile-project-root))
+        (relative-file (and file (file-relative-name file (projectile-project-root))))
+        (make-command (list "make" "test")))
+    (cond
+     (test
+      (let ((test-list (split-string test "\\.")))
+        (apply #'elpy-test-run
+               working-directory
+               (append make-command (asw/make-test-args (mapconcat #'identity
+                                                (cons relative-file test-list)
+                                                "::"))))))
+     (module
+      (apply #'elpy-test-run working-directory (append make-command
+                                         (asw/make-test-args relative-file))))
+     (t
+      (apply #'elpy-test-run working-directory make-command)))))
+(put 'asw/elpy-test-make-test-runner 'elpy-test-runner-p t)
+(setq elpy-test-runner 'asw/elpy-test-make-test-runner)
+
+(defun asw/make-test-args(args)
+  (list (concat
+         "TEST_ARGS='--no-cov "
+         args
+         "'")))
+
+;; advise elpy-test-run so that we can skip shell escapes in make
+;; based projects -- the shell escaping breaks passing TEST_ARGS
+(defun asw/elpy-test-run (orig-fun &rest args)
+  (let ((command (car (cdr args))))
+    (cond
+     ((equal command "make")
+      (let ((default-directory (car args))
+            (remaining-args (cddr args)))
+        (funcall elpy-test-compilation-function
+                 (mapconcat #'identity (cons command remaining-args) " "))))
+     (t
+      (apply orig-fun args)))))
+(advice-add 'elpy-test-run :around 'asw/elpy-test-run)
+
+
 
 ;;
 ;; ruby
@@ -603,3 +664,4 @@ directory to make multiple eshell windows easier."
 
 (eval-after-load "cc-mode"
   '(define-key c-mode-base-map ";" nil))
+(put 'narrow-to-region 'disabled nil)
