@@ -751,3 +751,6 @@ in a test method, then just call elpy-test"
   (interactive)
   (let ((default-directory (projectile-project-root)))
     (start-process "npm-start" "*npm-start*" "make" "npm-start")))
+
+;; I really prefer to not have to resize when opening a new session...
+(set-frame-parameter nil 'fullscreen 'maximized)

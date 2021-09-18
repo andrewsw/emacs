@@ -11,16 +11,20 @@
 ;; something about these next three sexps isn't working properly...
 (defvar my-packages
   '(ag
+    auto-virtualenv
     elpy
+    exec-path-from-shell
     flx-ido
     flymake-json
     flymake-easy
     flymake-ruby
     flycheck
+    helm
     highlight
     idle-highlight-mode
     json-mode
     loccur
+    lsp-java
     magit
     minimap
     markdown-mode
@@ -31,6 +35,7 @@
     ruby-electric
     ruby-hash-syntax
     ruby-test-mode
+    use-package
     web-mode
     yaml-mode
     yasnippet))
