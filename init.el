@@ -754,3 +754,6 @@ in a test method, then just call elpy-test"
 
 ;; I really prefer to not have to resize when opening a new session...
 (set-frame-parameter nil 'fullscreen 'maximized)
+
+;; stop the damn hiding of emacs when I fat finger things
+(global-unset-key [?\s-h])
