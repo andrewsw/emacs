@@ -40,19 +40,20 @@
  '(column-number-mode t)
  '(company-backends
    (quote
-    (company-lsp company-bbdb company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
-                 (company-dabbrev-code company-gtags company-etags company-keywords)
-                 company-oddmuse company-dabbrev)))
+    (company-bbdb company-eclim company-semantic company-clang company-xcode company-cmake company-capf company-files
+                  (company-dabbrev-code company-gtags company-etags company-keywords)
+                  company-oddmuse company-dabbrev)))
  '(company-idle-delay 0.5)
  '(company-minimum-prefix-length 0)
+ '(compilation-scroll-output t)
  '(custom-enabled-themes (quote (manoj-dark)))
  '(eldoc-print-after-edit t)
  '(elpy-project-root-finder-functions
    (quote
-    (elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root)))
+    (elpy-project-find-python-root elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root elpy-project-find-django-root)))
  '(elpy-rpc-python-command "python3")
  '(elpy-syntax-check-command "flake8")
- '(elpy-test-pytest-runner-command (quote ("py.test" "--no-cov")))
+ '(elpy-test-pytest-runner-command (quote ("py.test" "--no-cov" "-v")))
  '(elpy-test-runner (quote elpy-test-pytest-runner))
  '(flycheck-checker-error-threshold 1000)
  '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
@@ -71,14 +72,17 @@
  '(org-agenda-todo-ignore-scheduled (quote future))
  '(org-agenda-window-setup (quote current-window))
  '(org-deadline-warning-days 5)
+ '(org-log-done (quote time))
  '(package-selected-packages
    (quote
-    (auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-completion-system (quote helm))
+ '(projectile-create-missing-test-files t)
  '(projectile-globally-ignored-directories
    (quote
     (".idea" ".ensime_cache" ".eunit" ".git" ".hg" ".fslckout" "_FOSSIL_" ".bzr" "_darcs" ".tox" ".svn" ".stack-work" "build")))
  '(projectile-globally-ignored-file-suffixes (quote ("class")))
+ '(projectile-switch-project-action (quote projectile-vc))
  '(py-autopep8-options (quote ("--max-line-length=120")))
  '(python-flymake-command (quote ("flake8")))
  '(pyvenv-default-virtual-env-name "/Users/andrew/.virtualenvs/")
@@ -127,7 +131,7 @@
   (hs-minor-mode 1)
   (idle-highlight-mode 1)
   (electric-pair-mode)
-  (setq c-electric-flag nil) ;; this thing is breaking indentation in java.. need to properly diagnose, this is a stop-gap
+  ;; (setq c-electric-flag nil) ;; this thing is breaking indentation in java.. need to properly diagnose, this is a stop-gap
   (define-key prog-mode-map (kbd "C-c h") 'hs-toggle-hiding)
   (define-key prog-mode-map (kbd "C-c C-h") 'hs-hide-level))
 
@@ -367,7 +371,9 @@ directory to make multiple eshell windows easier."
 
 (add-hook 'elpy-mode-hook (lambda ()
                            (add-hook 'before-save-hook
-                                     'elpy-black-fix-code nil t)))
+                                     'elpy-black-fix-code nil t)
+                           (add-hook 'before-save-hook 'py-isort-before-save)
+                           (add-hook 'before-save-hook 'delete-trailing-whitespace)))
 
 (require 'auto-virtualenv)
 (add-hook 'elpy-mode-hook 'auto-virtualenv-set-virtualenv)
@@ -375,9 +381,9 @@ directory to make multiple eshell windows easier."
 ;; custom test runner for make based projects
 (defun asw/elpy-test-make-test-runner (top file module test)
   (interactive (elpy-test-at-point))
-  (let ((working-directory (projectile-project-root))
-        (relative-file (and file (file-relative-name file (projectile-project-root))))
-        (make-command (list "make" "test")))
+  (let ((working-directory (elpy-project-root))
+        (relative-file (and file (file-relative-name file (elpy-project-root))))
+        (make-command (list "make" "unit-test")))
     (cond
      (test
       (let ((test-list (split-string test "\\.")))
@@ -396,7 +402,7 @@ directory to make multiple eshell windows easier."
 
 (defun asw/make-test-args(args)
   (list (concat
-         "TEST_ARGS='--no-cov "
+         "TEST_ARGS='--no-cov -vv "
          args
          "'")))
 
@@ -414,8 +420,50 @@ directory to make multiple eshell windows easier."
       (apply orig-fun args)))))
 (advice-add 'elpy-test-run :around 'asw/elpy-test-run)
 
+;; experiment with a test runner command that re-runs the previous test, when appropriate
+(defvar asw/previous-elpy-test nil
+  "The previously run elpy test. Used when running tests, but
+  point is not currently in a test")
+
+(defun asw/elpy-test-dwim (&optional prefix-arg)
+  "Run test at point, if we're in one. Otherwise, re-run the
+previously run test. If we have never run a test, and we're not
+in a test method, then just call elpy-test"
+  (interactive "P")
+  (save-buffer) ;; we've probably just edited this buffer, so save it...
+  (let ((current-test (elpy-test-at-point)))
+    (cond (prefix-arg
+           (call-interactively 'elpy-test))
+          ((cadddr current-test)
+           ;; point is in a test method
+           (setq asw/previous-elpy-test current-test)
+           (apply elpy-test-runner current-test))
+          ((caddr current-test)
+           ;; point is in a test file, but not in a specific method,
+           ;; invoke elpy-test to get all tests in file
+           (setq asw/previous-elpy-test current-test)
+           (elpy-test))
+          (asw/previous-elpy-test
+           ;; point is not in a test method. run previous test
+           (apply elpy-test-runner asw/previous-elpy-test))
+          (t
+           ;; none of our dwim cases match, so just pass through to elpy-test
+           (call-interactively 'elpy-test)))))
+
+(define-key elpy-mode-map (kbd "C-c C-t") 'asw/elpy-test-dwim)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; python via lsp pyright...
+;;
+
+;; (require 'python-mode)
+;; (add-hook 'python-mode-hook '(lambda ()
+;;                                (require 'lsp-pyright)
+;;                                (lsp-deferred)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; ruby
 ;;
@@ -481,9 +529,9 @@ directory to make multiple eshell windows easier."
 ;; js-mode
 ;;
 
-;; (defun my-js-mode-hook ()
-;;   (setq js-indent-level 2))
-;; (add-hook 'js-mode-hook 'my-js-mode-hook)
+(defun my-js-mode-hook ()
+  (setq js-indent-level 4))
+(add-hook 'js-mode-hook 'my-js-mode-hook)
 
 ;;
 ;; loccur
@@ -507,17 +555,19 @@ directory to make multiple eshell windows easier."
 (require 'projectile)
 (projectile-global-mode t)
 (global-set-key (kbd "C-c p") 'projectile-command-map)
-
-(projectile-register-project-type 'brazil '("build.xml")
-                                  :compile "brazil-build"
-                                  :test "brazil-build test"
-                                  :run "brazil-build server"
-                                  :test-suffix "Test"
-                                  :test-dir "tst"
-                                  :src-dir "src")
-
+(define-key projectile-command-map (kbd "t") 'projectile-find-implementation-or-test-other-window)
+(define-key projectile-mode-map (kbd "t") nil)
 (put 'downcase-region 'disabled nil)
 
+;; experimental attempt to allow creating files on the fly within projectile
+(with-eval-after-load 'helm-projectile
+ (defvar helm-source-file-not-found
+    (helm-build-dummy-source
+        "Create file"
+      :action (lambda (cand) (find-file cand))))
+
+
+  (add-to-list 'helm-projectile-sources-list helm-source-file-not-found t))
 
 ;;
 ;; highlight duplicate lines
@@ -616,13 +666,15 @@ directory to make multiple eshell windows easier."
   (save-current-buffer
     (set-buffer "*compilation*")
     (read-only-mode)
-    (goto-char (point-min))
+    (goto-char (point-max))
     (local-set-key (kbd "q")
                    (lambda () (interactive) (quit-restore-window nil "bury")))))
 
 (add-hook 'compilation-finish-functions
           #'asackvil/compilation-finish-function)
 
+(require 'ag)
+(define-key ag-mode-map (kbd "q") (lambda () (interactive)(quit-restore-window nil "kill")))
 ;;
 ;; enable mu4e
 (require 'my-mu4e)
@@ -665,3 +717,37 @@ directory to make multiple eshell windows easier."
 (eval-after-load "cc-mode"
   '(define-key c-mode-base-map ";" nil))
 (put 'narrow-to-region 'disabled nil)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; experiments
+;;
+;;
+
+(use-package treemacs
+  :ensure t
+  :defer t
+  :config
+  (setq treemacs-no-png-images t
+	  treemacs-width 24)
+  :bind ("C-c t" . treemacs))
+
+
+
+
+(defun asw/show-on-github()
+  (interactive)
+  (let* ((filename (concat (file-relative-name (buffer-file-name) (projectile-project-root))))
+         (branch-name (magit-get-current-branch))
+         (base-url (concat "https://github.com/brightmd/" (projectile-project-name) "/blob/" branch-name "/"))
+         (position (concat "#L" (if mark-active
+                                    (concat (number-to-string (line-number-at-pos (region-beginning))) "-L" (number-to-string (line-number-at-pos (region-end))))
+                                  (number-to-string (line-number-at-pos))))))
+    (browse-url (concat base-url filename position))))
+
+
+(defun asw/run-npm-start()
+  (interactive)
+  (let ((default-directory (projectile-project-root)))
+    (start-process "npm-start" "*npm-start*" "make" "npm-start")))
