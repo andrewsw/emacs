@@ -75,7 +75,7 @@
  '(org-log-done (quote time))
  '(package-selected-packages
    (quote
-    (restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-completion-system (quote helm))
  '(projectile-create-missing-test-files t)
  '(projectile-globally-ignored-directories
@@ -509,6 +509,7 @@ in a test method, then just call elpy-test"
 ;;
 ;; magit stuff
 ;;
+(with-eval-after-load 'magit (require 'forge))
 (require 'seq)
 (defun my/find-magit-status-buffer()
   (interactive)
@@ -524,6 +525,7 @@ in a test method, then just call elpy-test"
         (magit-status)))))
 
 (global-set-key (kbd "C-c g") 'my/find-magit-status-buffer)
+
 
 ;;
 ;; js-mode
