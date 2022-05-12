@@ -18,12 +18,6 @@
 ;;
 ;; various configuration and setup routines ()
 ;;
-;;
-;;
-;;
-;;
-;;
-
 (require 'my-ui)
 
 ;; try out recentf
@@ -35,6 +29,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ag-reuse-window t)
  '(ansi-color-names-vector
    ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#e090d7" "#8cc4ff" "#eeeeec"])
  '(column-number-mode t)
@@ -75,8 +70,8 @@
  '(org-log-done (quote time))
  '(package-selected-packages
    (quote
-    (forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
- '(projectile-completion-system (quote helm))
+    (perspective ac-js2 js2-mode marginalia orderless selectrum forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+ '(projectile-completion-system (quote default))
  '(projectile-create-missing-test-files t)
  '(projectile-globally-ignored-directories
    (quote
@@ -87,7 +82,48 @@
  '(python-flymake-command (quote ("flake8")))
  '(pyvenv-default-virtual-env-name "/Users/andrew/.virtualenvs/")
  '(ruby-test-rspec-options (quote ("--drb" "-b")))
- '(safe-local-variable-values (quote ((pyvenv-workon . corpus))))
+ '(safe-local-variable-values
+   (quote
+    ((eval
+      (add-hook
+       (quote before-save-hook)
+       (function delete-trailing-whitespace)
+       nil t))
+     (eval
+      (add-hook
+       (quote before-save-hook)
+       (function delete-trailing-whitespace)
+       nil t)
+      (remove-hook
+       (quote before-save-hook)
+       (function py-isort-before-save)
+       nil t))
+     (eval
+      (progn
+        (add-hook
+         (quote before-save-hook)
+         (function delete-trailing-whitespace)
+         nil t)
+        (remove-hook
+         (quote before-save-hook)
+         (function py-isort-before-save)
+         nil t)))
+     (eval
+      (progn
+        (add-hook
+         (quote before-save-hook)
+         (function delete-trailing-whitespace))
+        (remove-hook
+         (quote before-save-hook)
+         (function py-isort-before-save))))
+     (eval set
+           (quote before-save-hook)
+           (function delete-trailing-whitespace))
+     (eval add-hook
+           (quote before-save-hook)
+           (function delete-trailing-whitespace)
+           nil t)
+     (pyvenv-workon . corpus))))
  '(scroll-bar-mode nil)
  '(shell-file-name "/bin/bash")
  '(show-paren-mode t)
@@ -208,6 +244,55 @@
 ;; (flx-ido-mode t)
 ;; (setq ido-enable-flex-matching t) ;; enable fuzzy matching
 ;; (setq ido-use-faces nil)
+
+;;
+;;
+;; selectrum
+;;
+;;
+(use-package selectrum
+  :ensure t
+  :config
+  (selectrum-mode +1))
+
+;;
+;;
+;; orderless
+;;
+;;
+(use-package orderless
+  :ensure t
+  :custom (completion-styles '(orderless)))
+
+;;
+;;
+;; marginalia
+;;
+;;
+(use-package marginalia
+  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+  :bind (("M-A" . marginalia-cycle)
+         :map minibuffer-local-map
+         ("M-A" . marginalia-cycle))
+
+  ;; The :init configuration is always executed (Not lazy!)
+  :init
+  (marginalia-mode))
+
+;;
+;;
+;; perspective
+;;
+;;
+(use-package perspective
+  :bind
+  (("C-x b" . persp-switch-to-buffer*)
+   ("C-x k" . persp-kill-buffer*)
+   ("C-x C-b" . persp-list-buffers))
+  :custom
+  (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+  :init
+  (persp-mode))
 
 ;;
 ;; word counting stuff
@@ -351,6 +436,18 @@ directory to make multiple eshell windows easier."
 ;; json stuff
 ;;
 (add-hook 'json-mode-hook 'flymake-json-load)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; javascript
+;;
+
+;; starting simple, with just js2-mode and some defaults
+(use-package js2-mode
+  :ensure t
+  :config (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode)))
+
+
 
 ;;
 ;; highlighting columns
@@ -511,7 +608,7 @@ in a test method, then just call elpy-test"
 ;;
 (with-eval-after-load 'magit (require 'forge))
 (require 'seq)
-(defun my/find-magit-status-buffer()
+(defun asw/find-magit-status-buffer()
   (interactive)
   (if (projectile-project-p)
       (projectile-vc)
@@ -524,7 +621,7 @@ in a test method, then just call elpy-test"
           (switch-to-buffer selected-magit-buffer)
         (magit-status)))))
 
-(global-set-key (kbd "C-c g") 'my/find-magit-status-buffer)
+(global-set-key (kbd "C-c g") 'asw/find-magit-status-buffer)
 
 
 ;;
@@ -676,7 +773,7 @@ in a test method, then just call elpy-test"
           #'asackvil/compilation-finish-function)
 
 (require 'ag)
-(define-key ag-mode-map (kbd "q") (lambda () (interactive)(quit-restore-window nil "kill")))
+(define-key ag-mode-map (kbd "q") (lambda () (interactive)(quit-restore-window nil 'kill)))
 ;;
 ;; enable mu4e
 (require 'my-mu4e)
@@ -696,29 +793,19 @@ in a test method, then just call elpy-test"
 (require 'yasnippet)
 (yas-global-mode 1)
 
-;; Amazon custom libraries
-;;
-;; this mostly seems broken for local development...
-;;(require 'amz-common)
-
-
 ;;
 ;; helm
 ;;
 ;; trying this thing out...
-(require 'helm-config)
-(setq helm-split-window-inside-p t)
-(helm-mode 1)
+;; (require 'helm-config)
+;; (setq helm-split-window-inside-p t)
+;; (helm-mode 1)
 
 ;;
 ;; company
 ;;
 ;;
 (setq company-dabbrev-downcase nil)
-
-(eval-after-load "cc-mode"
-  '(define-key c-mode-base-map ";" nil))
-(put 'narrow-to-region 'disabled nil)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -727,35 +814,61 @@ in a test method, then just call elpy-test"
 ;;
 ;;
 
-(use-package treemacs
-  :ensure t
-  :defer t
-  :config
-  (setq treemacs-no-png-images t
-	  treemacs-width 24)
-  :bind ("C-c t" . treemacs))
-
-
-
-
-(defun asw/show-on-github()
-  (interactive)
+(defun asw/show-on-github (arg)
+  (interactive "P")
   (let* ((filename (concat (file-relative-name (buffer-file-name) (projectile-project-root))))
          (branch-name (magit-get-current-branch))
          (base-url (concat "https://github.com/brightmd/" (projectile-project-name) "/blob/" branch-name "/"))
          (position (concat "#L" (if mark-active
                                     (concat (number-to-string (line-number-at-pos (region-beginning))) "-L" (number-to-string (line-number-at-pos (region-end))))
-                                  (number-to-string (line-number-at-pos))))))
-    (browse-url (concat base-url filename position))))
-
+                                  (number-to-string (line-number-at-pos)))))
+         (final-url (concat base-url filename position)))
+    (cond
+     (arg (kill-new final-url))
+     (t (browse-url final-url)))))
 
 (defun asw/run-npm-start()
   (interactive)
   (let ((default-directory (projectile-project-root)))
     (start-process "npm-start" "*npm-start*" "make" "npm-start")))
 
+(require 'dash)
+
+(defun asw/magit-repo-browser-url()
+  (--> (car (magit-config-get-from-cached-list "remote.origin.url"))
+                       (replace-regexp-in-string "^.*@" "" it)
+                       (replace-regexp-in-string ":" "/" it)
+                       (replace-regexp-in-string "\\.git$" "" it)
+                       (concat "https://" it)))
+
+
+(defun asw/magit-goto-repository()
+  (interactive)
+  (browse-url (asw/magit-repo-browser-url)))
+
+(defun asw/magit-show-in-repository (arg)
+  (interactive "P")
+  (let* ((filename (concat (file-relative-name (buffer-file-name) (projectile-project-root))))
+         (branch-name (magit-get-current-branch))
+         (base-url (concat (asw/magit-repo-browser-url) "/blob/" branch-name "/"))
+         (position (concat "#L" (if mark-active
+                                    (concat (number-to-string (line-number-at-pos (region-beginning))) "-L" (number-to-string (line-number-at-pos (region-end))))
+                                  (number-to-string (line-number-at-pos)))))
+         (final-url (concat base-url filename position)))
+    (cond
+     (arg (kill-new final-url))
+     (t (browse-url final-url)))))
+
 ;; I really prefer to not have to resize when opening a new session...
 (set-frame-parameter nil 'fullscreen 'maximized)
 
 ;; stop the damn hiding of emacs when I fat finger things
 (global-unset-key [?\s-h])
+
+;; let's be safer about accidentally exiting
+(global-unset-key (kbd "C-x C-c"))
+
+(defun asw/pin-buffer-to-window()
+  "Sets the window to be dedicated to the current buffer"
+  (interactive)
+  (set-window-dedicated-p (selected-window) t))
