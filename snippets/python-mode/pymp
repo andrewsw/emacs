@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pymp
+# key: pymp
+# --
+@pytest.mark.parametrize($0)

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: pf
+# key: pf
+# --
+print(f"$1: {$1}")
+$0

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pmp
+# key: pmp
+# --
+@pytest.mark.parametrize($0)

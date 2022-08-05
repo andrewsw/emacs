@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pytest-async
+# key: pyma
+# --
+@pytest.mark.asyncio
