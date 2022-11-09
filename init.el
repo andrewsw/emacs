@@ -70,7 +70,7 @@
  '(org-log-done (quote time))
  '(package-selected-packages
    (quote
-    (tree-sitter tree-sitter-langs docker perspective ac-js2 js2-mode marginalia orderless selectrum forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (dockerfile-mode tree-sitter tree-sitter-langs docker perspective ac-js2 js2-mode marginalia orderless selectrum forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-completion-system (quote default))
  '(projectile-create-missing-test-files t)
  '(projectile-globally-ignored-directories
@@ -872,3 +872,12 @@ in a test method, then just call elpy-test"
   "Sets the window to be dedicated to the current buffer"
   (interactive)
   (set-window-dedicated-p (selected-window) t))
+(put 'narrow-to-region 'disabled nil)
+
+;;
+;;
+;; Terraform mode
+;;
+;;
+(require 'terraform-mode)
+(add-hook 'terraform-mode-hook #'terraform-format-on-save-mode)
