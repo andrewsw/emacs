@@ -18,7 +18,6 @@
     flymake-json
     flymake-easy
     flymake-ruby
-    flycheck
     helm
     highlight
     idle-highlight-mode

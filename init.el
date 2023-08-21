@@ -32,6 +32,7 @@
  '(ag-reuse-window t)
  '(ansi-color-names-vector
    ["#212526" "#ff4b4b" "#b4fa70" "#fce94f" "#729fcf" "#e090d7" "#8cc4ff" "#eeeeec"])
+ '(backup-directory-alist (quote (("." . "~/tmp/emacs-backups"))))
  '(column-number-mode t)
  '(company-backends
    (quote
@@ -47,15 +48,15 @@
    (quote
     (elpy-project-find-python-root elpy-project-find-git-root elpy-project-find-hg-root elpy-project-find-svn-root elpy-project-find-django-root)))
  '(elpy-rpc-python-command "python3")
+ '(elpy-rpc-virtualenv-path (quote current))
  '(elpy-syntax-check-command "flake8")
  '(elpy-test-pytest-runner-command (quote ("py.test" "--no-cov" "-v")))
  '(elpy-test-runner (quote elpy-test-pytest-runner))
- '(flycheck-checker-error-threshold 1000)
- '(flycheck-disabled-checkers (quote (ruby-rubylint ruby-leek ruby-jruby)))
- '(flycheck-rubocoprc "~/flycheck-rubocoprc.yml")
  '(fringe-mode nil nil (fringe))
  '(global-company-mode t)
  '(indent-tabs-mode nil)
+ '(js2-mode-show-parse-errors nil)
+ '(js2-mode-show-strict-warnings nil)
  '(latex-run-command "pdflatex")
  '(linum-format "%d ")
  '(lsp-enable-indentation nil)
@@ -70,7 +71,7 @@
  '(org-log-done (quote time))
  '(package-selected-packages
    (quote
-    (dockerfile-mode tree-sitter tree-sitter-langs docker perspective ac-js2 js2-mode marginalia orderless selectrum forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
+    (flymake-eslint prettier vertico dockerfile-mode tree-sitter tree-sitter-langs docker perspective ac-js2 js2-mode marginalia orderless selectrum forge restclient use-package lsp-pyright sql-indent http rainbow-delimiters terraform-mode csharp-mode py-isort auto-virtualenv helm-ag helm-projectile lsp-ui company-lsp project-explorer "project-explorer" exec-path-from-shell mu4e-overview helm dap-mode treemacs lsp-java lsp-mode yaml-mode web-mode smartparens ruby-test-mode ruby-hash-syntax ruby-electric rubocop robe py-autopep8 projectile minimap markdown-mode magit loccur json-mode jinja2-mode idle-highlight-mode highlight flymake-ruby flymake-json flx-ido elpy csv-mode ag)))
  '(projectile-completion-system (quote default))
  '(projectile-create-missing-test-files t)
  '(projectile-globally-ignored-directories
@@ -257,6 +258,16 @@
 
 ;;
 ;;
+;; vertico
+;;
+;;
+;; (use-package vertico
+;;   :ensure t
+;;   :init
+;;   (vertico-mode))
+
+;;
+;;
 ;; orderless
 ;;
 ;;
@@ -435,7 +446,7 @@ directory to make multiple eshell windows easier."
 ;;
 ;; json stuff
 ;;
-(add-hook 'json-mode-hook 'flycheck-mode)
+(add-hook 'json-mode-hook 'flymake-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -445,7 +456,8 @@ directory to make multiple eshell windows easier."
 ;; starting simple, with just js2-mode and some defaults
 (use-package js2-mode
   :ensure t
-  :config (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode)))
+  :config
+  (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-mode)))
 
 
 
@@ -460,11 +472,6 @@ directory to make multiple eshell windows easier."
 
 
 (elpy-enable)
-
-(when (require 'flycheck nil t)
-  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
-
 
 (add-hook 'elpy-mode-hook (lambda ()
                            (add-hook 'before-save-hook
@@ -499,7 +506,7 @@ directory to make multiple eshell windows easier."
 
 (defun asw/make-test-args(args)
   (list (concat
-         "TEST_ARGS='--no-cov -vv "
+         "TEST_ARGS='--no-cov "
          args
          "'")))
 
@@ -567,13 +574,12 @@ in a test method, then just call elpy-test"
 (require 'ruby-test-mode)
 (define-key ruby-test-mode-map (kbd "C-c t") 'ruby-test-toggle-implementation-and-specification)
 
-(add-hook 'ruby-mode-hook 'flycheck-mode)
+(add-hook 'ruby-mode-hook 'flymake-mode)
 (add-hook 'ruby-mode-hook 'robe-mode)
 
 
 (add-hook 'ruby-mode-hook
           (lambda ()
-            (define-key ruby-mode-map (kbd "C-c d") 'flymake-popup-current-error-menu)
             (define-key ruby-mode-map (kbd "C-c h") 'hs-toggle-hiding)))
 
 
@@ -657,6 +663,34 @@ in a test method, then just call elpy-test"
 (define-key projectile-command-map (kbd "t") 'projectile-find-implementation-or-test-other-window)
 (define-key projectile-mode-map (kbd "t") nil)
 (put 'downcase-region 'disabled nil)
+
+
+
+;;
+;; magit window management
+;;
+;; maximizes magit windows, and restores previous layout on quitting magit
+;;
+(require 'magit)
+(defvar aws/window-config nil "used to store window config while interacting with magit")
+
+(defun asw/magit-quit ()
+  "bury magit and reset our window layout"
+  (interactive)
+  (magit-mode-bury-buffer)
+  (set-window-configuration asw/window-config))
+
+(defun asw/projectile-vc-dir ()
+  "capture window layout, pop magit, and maximize it"
+  (interactive)
+  (setq asw/window-config (current-window-configuration))
+  (projectile-vc)
+  (delete-other-windows (get-buffer-window)))
+
+(define-key projectile-command-map (kbd "v") 'asw/projectile-vc-dir)
+(define-key magit-status-mode-map (kbd "q") 'asw/magit-quit)
+
+
 
 ;; experimental attempt to allow creating files on the fly within projectile
 (with-eval-after-load 'helm-projectile
@@ -753,10 +787,14 @@ in a test method, then just call elpy-test"
 ;;
 (require 'ansi-color)
 (defun asackvil/colorize-compilation ()
-  "Colorize from `compilation-filter-start' to `point'."
+  "Colorize from `compilation-filter-start' to `point'. Now handles screen clearing, too"
   (let ((inhibit-read-only t))
-    (ansi-color-apply-on-region
-     compilation-filter-start (point))))
+    (goto-char compilation-filter-start)
+    (when (looking-at "\033c")
+      (delete-region (point-min) (match-end 0)))
+    (ansi-color-apply-on-region (point) (point-max))))
+
+
 
 (add-hook 'compilation-filter-hook
           #'asackvil/colorize-compilation)
@@ -776,16 +814,16 @@ in a test method, then just call elpy-test"
 (define-key ag-mode-map (kbd "q") (lambda () (interactive)(quit-restore-window nil 'kill)))
 ;;
 ;; enable mu4e
-(require 'my-mu4e)
+;; (require 'my-mu4e)
 
 ;;
 ;; with mu4e enabled, bring in org-mode support
 ;;
-(require 'org-mu4e)
+;; (require 'org-mu4e)
 
 ;; allow capturing directly in mu4e buffers
-(define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
-(define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
+;; (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
+;; (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
 
 ;;
 ;; snippets!
@@ -881,3 +919,49 @@ in a test method, then just call elpy-test"
 ;;
 (require 'terraform-mode)
 (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode)
+
+;;
+;;
+;; prettier
+;;
+;;
+(use-package prettier
+  :ensure t
+  :config
+  (add-hook 'js2-mode-hook #'prettier-mode))
+
+
+;;
+;;
+;; eslint
+;;
+;;
+(use-package flymake-eslint
+  :ensure t
+  :config
+  (add-hook 'js2-mode-hook 'flymake-eslint-enable))
+
+;;
+;;
+;; patch a bug in xref
+;;
+;; my xref version thinks setq-local is variadic, but it's not... so fix it
+;;
+;;
+;; this is patched in emacs 27, so just upgrade, you dope
+(define-derived-mode xref--xref-buffer-mode special-mode "XREF"
+  "Mode for displaying cross-references."
+  (setq buffer-read-only t)
+  (setq next-error-function #'xref--next-error-function)
+  (setq next-error-last-buffer (current-buffer))
+  (setq imenu-prev-index-position-function
+        #'xref--imenu-prev-index-position)
+  (setq imenu-extract-index-name-function
+        #'xref--imenu-extract-index-name)
+  (setq-local outline-minor-mode-cycle t)
+  (setq-local outline-minor-mode-use-buttons t)
+  (setq-local outline-search-function
+              (lambda (&optional bound move backward looking-at)
+                (outline-search-text-property
+                 'xref-group nil bound move backward looking-at)))
+  (setq-local outline-level (lambda () 1)))
